@@ -5,7 +5,7 @@ with open("README.md", "r") as stream:
 
 setup(
     name = 'botdash.py',
-    version = '0.0.1',
+    version = '0.0.5',
     url = 'https://github.com/jetnox/botdash-py',
     download_url = 'https://github.com/jetnox/botdash-py/tarball/master',
     license = 'MIT',

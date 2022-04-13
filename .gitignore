@@ -1,2 +1,5 @@
 dist
 botdash.py.*
+build
+.eggs
+*__pycache__*

@@ -5,10 +5,12 @@ with open("README.md", "r") as stream:
 
 setup(
     name = 'botdash.py',
-    version = '2.1.5',
-    url = 'https://github.com/TBTech205/botdash-py',
+    version = '0.0.5',
+    url = 'https://github.com/jetnox/botdash-py',
+    download_url = 'https://github.com/jetnox/botdash-py/tarball/master',
     license = 'MIT',
-    author = 'TBTECH205',
+    author = 'Jetnox',
+    author_email = 'seer@jetblaze.org',
     description = 'API wrapper for botdash.pro',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
@@ -21,7 +23,8 @@ setup(
         'setuptools',
         'requests',
         'six',
-        'ujson'
+        'ujson',
+        'python-socketio'
     ],
     setup_requires = [
         'wheel'

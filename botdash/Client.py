@@ -115,7 +115,16 @@ class Client:
                 "guilds": guilds
             })
         except:
-            return
+            self.socket.emit("sync", {
+                "bot": {
+                    "connected": True,
+                    "id": str(self.discord.user.id),
+                    "name": self.discord.user.name,
+                    "avatar": self.discord.user.avatar.url,
+                    "discriminator": self.discord.user.discriminator
+                },
+                "guilds": guilds
+            })
         
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 

@@ -114,7 +114,7 @@ class Client:
                 },
                 "guilds": guilds
             })
-        except:
+        except AttributeError:
             self.socket.emit("sync", {
                 "bot": {
                     "connected": True,

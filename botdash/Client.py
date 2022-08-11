@@ -109,7 +109,7 @@ class Client:
                     "connected": True,
                     "id": str(self.discord.user.id),
                     "name": self.discord.user.name,
-                    "avatar": self.discord.user.avatar_url,
+                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar_url._url,
                     "discriminator": self.discord.user.discriminator
                 },
                 "guilds": guilds
@@ -120,7 +120,7 @@ class Client:
                     "connected": True,
                     "id": str(self.discord.user.id),
                     "name": self.discord.user.name,
-                    "avatar": self.discord.user.avatar.url,
+                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url._url,
                     "discriminator": self.discord.user.discriminator
                 },
                 "guilds": guilds

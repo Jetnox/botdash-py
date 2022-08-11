@@ -1,6 +1,4 @@
-# Bot package 
 import discord
-
 
 import requests
 import ujson as json
@@ -8,11 +6,10 @@ import socketio as io
 import time
 import threading
 import asyncio
-from .lib.value import ValueModel
-from .lib.library import Library
+from .lib import ValueModel
 
 class Client:
-    def __init__(self, token: str, client: Library, return_value: bool = False, debug: bool = False, ):
+    def __init__(self, token: str, return_value: bool = False, debug: bool = False, client: discord.Client = None):
         self.token = token
         self.debug = debug
         self.uri = "https://botdash.pro/api/v2"
@@ -69,10 +66,10 @@ class Client:
                 self.cache[guild_id][meta["key"]] = meta["value"]
             
         self.socket.connect(self.socketUri + "?authToken=" + self.token)
-     
-
+    
     def __log(self, message: str):
         print(f"[Botdash.py Client] {message}")
+    
     def syncToSocket(self):
         if self.discord is None:
                 return
@@ -90,7 +87,7 @@ class Client:
                     "type": channel.type[1],
                     "position": channel.position,
                     "category": channel.category.name if channel.category is not None else None,
-                    })
+                })
             
             for role in guild.roles:
                 roles.append({
@@ -98,28 +95,28 @@ class Client:
                     "name": role.name,
                     "color": role.color.value,
                     "hoist": role.position,
-                    })
+                })
             
             guilds.append({
                 "id": str(guild.id),
                 "channels": channels,
                 "roles": roles,
-                })
+            })
 
-        if self.client == Library.DPY:
-            avatar = self.discord.user.avatar_url
-        if 
-
-        self.socket.emit("sync", {
-            "bot": {
-                "connected": True,
-                "id": str(self.discord.user.id),
-                "name": self.discord.user.name,
-                "avatar": avatar,
-                "discriminator": self.discord.user.discriminator
-            },
-            "guilds": guilds
-        })
+        try:
+            self.socket.emit("sync", {
+                "bot": {
+                    "connected": True,
+                    "id": str(self.discord.user.id),
+                    "name": self.discord.user.name,
+                    "avatar": self.discord.user.avatar_url,
+                    "discriminator": self.discord.user.discriminator
+                },
+                "guilds": guilds
+            })
+        except:
+            return
+        
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 
             self.threads = [t for t in self.threads if t.is_alive()]

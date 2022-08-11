@@ -23,7 +23,8 @@ setup(
         'setuptools',
         'requests',
         'six',
-        'ujson'
+        'ujson',
+        'python-socketio'
     ],
     setup_requires = [
         'wheel'

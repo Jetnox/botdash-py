@@ -1,11 +1,10 @@
 import discord
-
 import requests
-import ujson as json
-import socketio as io
 import time
 import threading
 import asyncio
+import ujson as json
+import socketio as io
 from .lib import ValueModel
 
 class Client:
@@ -72,7 +71,8 @@ class Client:
     
     def syncToSocket(self):
         if self.discord is None:
-                return
+            return
+        
         while not self.discord.is_ready():
             time.sleep(1)
         
@@ -127,6 +127,7 @@ class Client:
         thread.start()
         self.threads.append(thread)
         return thread
+    
     def getUsingRest(self, guild_id: str, key: str):
         res = requests.get(
             f"{self.uri}/value/{key}/{guild_id}", 
@@ -145,8 +146,10 @@ class Client:
         else: 
             if self.return_value: return bd["json"]["value"]
             else: return ValueModel(bd)
+    
     def updateCache(self):
         self.socket.emit("cache")
+    
     def get(self, guild_id: str, key: str):
         defaultModel = {}
         guild_id = str(guild_id)
@@ -177,6 +180,7 @@ class Client:
         else:
             if self.return_value: return defaultModel["json"]["value"]
             else: return ValueModel(defaultModel)
+    
     def on(self, event: str):
         def decorator(func):
             self.events.append({
@@ -185,15 +189,15 @@ class Client:
             })
             return func
         return decorator
+    
     def emit(self, event: str, data):
         for event in self.events:
             if event["event"] == event["event"]:
                 asyncio.run(event["func"](data))
+
     def set(self, guild_id: str, key: str, value: str):
         self.socket.emit("set", {
             "guild": str(guild_id),
             "key": key,
             "value": value
-        })  
-
-        
+        })

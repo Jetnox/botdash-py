@@ -1,14 +1,18 @@
+# Bot package 
+import discord
+
+
 import requests
 import ujson as json
 import socketio as io
-import discord
-from .lib import ValueModel
 import time
 import threading
 import asyncio
+from .lib.value import ValueModel
+from .lib.library import Library
 
 class Client:
-    def __init__(self, token: str, return_value: bool = False, debug: bool = False, client: discord.Client = None):
+    def __init__(self, token: str, client: Library, return_value: bool = False, debug: bool = False, ):
         self.token = token
         self.debug = debug
         self.uri = "https://botdash.pro/api/v2"
@@ -65,6 +69,8 @@ class Client:
                 self.cache[guild_id][meta["key"]] = meta["value"]
             
         self.socket.connect(self.socketUri + "?authToken=" + self.token)
+     
+
     def __log(self, message: str):
         print(f"[Botdash.py Client] {message}")
     def syncToSocket(self):
@@ -100,12 +106,16 @@ class Client:
                 "roles": roles,
                 })
 
+        if self.client == Library.DPY:
+            avatar = self.discord.user.avatar_url
+        if 
+
         self.socket.emit("sync", {
             "bot": {
                 "connected": True,
                 "id": str(self.discord.user.id),
                 "name": self.discord.user.name,
-                "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar_url._url,
+                "avatar": avatar,
                 "discriminator": self.discord.user.discriminator
             },
             "guilds": guilds

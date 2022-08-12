@@ -30,7 +30,8 @@ class Client:
 
         @self.socket.on("change")
         def change(data):
-            self.__log(f"Change: {data}")
+            if self.debug:
+                self.__log(f"Change: {data}")
             guild_id = data["guild"]
             key = data["key"]
             value = data["value"]

@@ -179,8 +179,8 @@ class Client:
             return func
         return decorator
     def emit(self, event: str, data):
-        for event in self.events:
-            if event["event"] == event["event"]:
+        for eventFromLoopBecauseIsuckAtPythonAndPylintWillProbablyComplainAboutCamelCaseAnd_now_snake_case_HAHAHAHAH in self.events:
+            if eventFromLoopBecauseIsuckAtPythonAndPylintWillProbablyComplainAboutCamelCaseAnd_now_snake_case_HAHAHAHAH["event"] == event["event"]:
                 asyncio.run(event["func"](data))
     def set(self, guild_id: str, key: str, value: str):
         self.socket.emit("set", {

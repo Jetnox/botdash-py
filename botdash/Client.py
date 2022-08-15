@@ -3,7 +3,7 @@ import requests
 import time
 import threading
 import asyncio
-import ujson as json
+import json
 import socketio as io
 from .lib import ValueModel
 
@@ -20,13 +20,10 @@ class Client:
         self.modelCache = {}
         self.threads = []
         self.events = []
-    
-        try:
-            self.util_setInterval(self.syncToSocket, 60) # every minute sync servers and cool stuff
-            self.util_setInterval(self.updateCache, 60 * 50) # every 50 min update cache (in case of a desync during interruptions etc)
-        except RuntimeError:
-            if self.debug:
-                self.__log("Threads are already running")
+
+        self.util_setInterval(self.syncToSocket, 60) # every minute sync servers and cool stuff
+        self.util_setInterval(self.updateCache, 60 * 50) # every 50 min update cache (in case of a desync during interruptions etc)
+        
 
         @self.socket.on("trigger")
         def trigger(data):
@@ -109,37 +106,32 @@ class Client:
             })
 
         try:
-            self.socket.emit("sync", {
-                "bot": {
-                    "connected": True,
-                    "id": str(self.discord.user.id),
-                    "name": self.discord.user.name,
-                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar_url._url,
-                    "discriminator": self.discord.user.discriminator
-                },
-                "guilds": guilds
-            })
+            botAvatar = self.discord.user.avatar_url
         except AttributeError:
-            self.socket.emit("sync", {
-                "bot": {
-                    "connected": True,
-                    "id": str(self.discord.user.id),
-                    "name": self.discord.user.name,
-                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url._url,
-                    "discriminator": self.discord.user.discriminator
-                },
-                "guilds": guilds
-            })
+            botAvatar = self.discord.user.avatar.url
+
+        self.socket.emit("sync", {
+            "bot": {
+                "connected": True,
+                "id": f"{self.discord.user.id}",
+                "name": f"{self.discord.user.name}",
+                "avatar": f"{botAvatar}",
+                "discriminator": f"{self.discord.user.discriminator}"
+            },
+            "guilds": guilds
+        })
         
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 
             self.threads = [t for t in self.threads if t.is_alive()]
             self.util_setInterval(func, interval) 
             func()
+        
         thread = threading.Timer(interval, func_wrapper)
-        thread.daemon = True # python is actual dogwater
-        thread.start()
-        self.threads.append(thread)
+        thread.daemon = True
+        if not thread.is_alive():
+            thread.start()
+            self.threads.append(thread)
         return thread
 
     def updateCache(self):
@@ -167,8 +159,10 @@ class Client:
         if bd["code"] != 200:
             raise Exception(f"BotDash Error: [{bd['code']}] {bd['msg']}")
         else: 
-            if self.return_value: return bd["json"]["value"]
-            else: return ValueModel(bd)
+            if self.return_value: 
+                return bd["json"]["value"]
+            else:
+                return ValueModel(bd)
     
     def get(self, guild_id: str, key: str):
         defaultModel = {}
@@ -192,14 +186,21 @@ class Client:
                 modelFound["msg"] = "OK, Found in Cache"
                 modelFound["json"] = {}
                 modelFound["json"]["value"] = self.cache[guild_id][key]
-                if self.return_value: return modelFound["json"]["value"]
-                else: return ValueModel(modelFound)
+
+                if self.return_value: 
+                    return modelFound["json"]["value"]
+                else: 
+                    return ValueModel(modelFound)
             else:
-                if self.return_value: return defaultModel["json"]["value"]
-                else: return ValueModel(defaultModel)
+                if self.return_value: 
+                    return defaultModel["json"]["value"]
+                else: 
+                    return ValueModel(defaultModel)
         else:
-            if self.return_value: return defaultModel["json"]["value"]
-            else: return ValueModel(defaultModel)
+            if self.return_value: 
+                return defaultModel["json"]["value"]
+            else:
+                return ValueModel(defaultModel)
     
     def on(self, event: str):
         def decorator(func):

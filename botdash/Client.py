@@ -1,11 +1,11 @@
-import requests
-import ujson as json
-import socketio as io
 import discord
-from .lib import ValueModel
+import requests
 import time
 import threading
 import asyncio
+import json
+import socketio as io
+from .lib import ValueModel
 
 class Client:
     def __init__(self, token: str, return_value: bool = False, debug: bool = False, client: discord.Client = None):
@@ -20,9 +20,10 @@ class Client:
         self.modelCache = {}
         self.threads = []
         self.events = []
-    
+
         self.util_setInterval(self.syncToSocket, 60) # every minute sync servers and cool stuff
         self.util_setInterval(self.updateCache, 60 * 50) # every 50 min update cache (in case of a desync during interruptions etc)
+        
 
         @self.socket.on("trigger")
         def trigger(data):
@@ -30,7 +31,8 @@ class Client:
 
         @self.socket.on("change")
         def change(data):
-            self.__log(f"Change: {data}")
+            if self.debug:
+                self.__log(f"Change: {data}")
             guild_id = data["guild"]
             key = data["key"]
             value = data["value"]
@@ -65,11 +67,14 @@ class Client:
                 self.cache[guild_id][meta["key"]] = meta["value"]
             
         self.socket.connect(self.socketUri + "?authToken=" + self.token)
+    
     def __log(self, message: str):
         print(f"[Botdash.py Client] {message}")
+    
     def syncToSocket(self):
         if self.discord is None:
-                return
+            return
+        
         while not self.discord.is_ready():
             time.sleep(1)
         
@@ -84,7 +89,7 @@ class Client:
                     "type": channel.type[1],
                     "position": channel.position,
                     "category": channel.category.name if channel.category is not None else None,
-                    })
+                })
             
             for role in guild.roles:
                 roles.append({
@@ -92,34 +97,52 @@ class Client:
                     "name": role.name,
                     "color": role.color.value,
                     "hoist": role.position,
-                    })
+                })
             
             guilds.append({
                 "id": str(guild.id),
                 "channels": channels,
                 "roles": roles,
-                })
+            })
+
+        try:
+            botAvatar = self.discord.user.avatar_url
+        except AttributeError:
+            botAvatar = self.discord.user.avatar.url
 
         self.socket.emit("sync", {
             "bot": {
                 "connected": True,
-                "id": str(self.discord.user.id),
-                "name": self.discord.user.name,
-                "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar_url._url,
-                "discriminator": self.discord.user.discriminator
+                "id": f"{self.discord.user.id}",
+                "name": f"{self.discord.user.name}",
+                "avatar": f"{botAvatar}",
+                "discriminator": f"{self.discord.user.discriminator}"
             },
             "guilds": guilds
         })
+        
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 
             self.threads = [t for t in self.threads if t.is_alive()]
             self.util_setInterval(func, interval) 
             func()
+        
         thread = threading.Timer(interval, func_wrapper)
-        thread.daemon = True # python is actual dogwater
-        thread.start()
-        self.threads.append(thread)
+        thread.daemon = True
+        if not thread.is_alive():
+            thread.start()
+            self.threads.append(thread)
         return thread
+
+    def updateCache(self):
+        self.socket.emit("cache")
+
+    def emit(self, event: dict, data):
+        for _event in self.events:
+            if _event["event"] == event["event"]:
+                asyncio.run(event["func"](data))
+
+    # Dashboard database functions
     def getUsingRest(self, guild_id: str, key: str):
         res = requests.get(
             f"{self.uri}/value/{key}/{guild_id}", 
@@ -136,10 +159,11 @@ class Client:
         if bd["code"] != 200:
             raise Exception(f"BotDash Error: [{bd['code']}] {bd['msg']}")
         else: 
-            if self.return_value: return bd["json"]["value"]
-            else: return ValueModel(bd)
-    def updateCache(self):
-        self.socket.emit("cache")
+            if self.return_value: 
+                return bd["json"]["value"]
+            else:
+                return ValueModel(bd)
+    
     def get(self, guild_id: str, key: str):
         defaultModel = {}
         guild_id = str(guild_id)
@@ -162,14 +186,22 @@ class Client:
                 modelFound["msg"] = "OK, Found in Cache"
                 modelFound["json"] = {}
                 modelFound["json"]["value"] = self.cache[guild_id][key]
-                if self.return_value: return modelFound["json"]["value"]
-                else: return ValueModel(modelFound)
+
+                if self.return_value: 
+                    return modelFound["json"]["value"]
+                else: 
+                    return ValueModel(modelFound)
             else:
-                if self.return_value: return defaultModel["json"]["value"]
-                else: return ValueModel(defaultModel)
+                if self.return_value: 
+                    return defaultModel["json"]["value"]
+                else: 
+                    return ValueModel(defaultModel)
         else:
-            if self.return_value: return defaultModel["json"]["value"]
-            else: return ValueModel(defaultModel)
+            if self.return_value: 
+                return defaultModel["json"]["value"]
+            else:
+                return ValueModel(defaultModel)
+    
     def on(self, event: str):
         def decorator(func):
             self.events.append({
@@ -178,15 +210,10 @@ class Client:
             })
             return func
         return decorator
-    def emit(self, event: str, data):
-        for eventFromLoopBecauseIsuckAtPythonAndPylintWillProbablyComplainAboutCamelCaseAnd_now_snake_case_HAHAHAHAH in self.events:
-            if eventFromLoopBecauseIsuckAtPythonAndPylintWillProbablyComplainAboutCamelCaseAnd_now_snake_case_HAHAHAHAH["event"] == event["event"]:
-                asyncio.run(event["func"](data))
+    
     def set(self, guild_id: str, key: str, value: str):
         self.socket.emit("set", {
             "guild": str(guild_id),
             "key": key,
             "value": value
-        })  
-
-        
+        })

@@ -12,7 +12,7 @@ class Client:
         self.token = token
         self.debug = debug
         self.uri = "https://botdash.pro/api/v2"
-        self.socketUri = "http://mars.skyswift.eu:7562/"
+        self.socketUri = "http://node1.jetnox.org:26346/"
         self.return_value = return_value # set to true if default NEEDS to be <RESPONSE_JSON?>.json.value
         self.socket = io.Client()
         self.discord = client

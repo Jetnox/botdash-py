@@ -115,13 +115,25 @@ class Client:
                 },
                 "guilds": guilds
             })
-        except AttributeError:
-            self.socket.emit("sync", {
+        except:
+            try:
+                self.socket.emit("sync", {
+                    "bot": {
+                        "connected": True,
+                        "id": str(self.discord.user.id),
+                        "name": self.discord.user.name,
+                        "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url._url,
+                        "discriminator": self.discord.user.discriminator
+                    },
+                    "guilds": guilds
+                })
+            except:
+                self.socket.emit("sync", {
                 "bot": {
                     "connected": True,
                     "id": str(self.discord.user.id),
                     "name": self.discord.user.name,
-                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url._url,
+                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url,
                     "discriminator": self.discord.user.discriminator
                 },
                 "guilds": guilds
@@ -202,8 +214,8 @@ class Client:
     
     def emit(self, event: dict, data):
         for _event in self.events:
-            if _event["event"] == event["event"]:
-                asyncio.run(event["func"](data))
+            if _event["event"] == event:
+                asyncio.run(_event["func"](data))
 
     def set(self, guild_id: str, key: str, value: str):
         self.socket.emit("set", {

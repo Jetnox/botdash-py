@@ -119,7 +119,7 @@ class Client:
             },
             "guilds": guilds
         })
-        
+
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 
             self.threads = [t for t in self.threads if t.is_alive()]
@@ -195,8 +195,8 @@ class Client:
     
     def emit(self, event: dict, data):
         for _event in self.events:
-            if _event["event"] == event["event"]:
-                asyncio.run(event["func"](data))
+            if _event["event"] == event:
+                asyncio.run(_event["func"](data))
 
     def set(self, guild_id: str, key: str, value: str):
         self.socket.emit("set", {

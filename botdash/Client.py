@@ -45,7 +45,7 @@ class Client:
         def error(data):
             if self.debug:
                 self.__log("BotDash Error (SIO): " +  data)
-            
+        
         @self.socket.on("connect")
         def connect():
             self.syncToSocket()
@@ -104,41 +104,22 @@ class Client:
                 "roles": roles,
             })
 
-        try:
-            self.socket.emit("sync", {
-                "bot": {
-                    "connected": True,
-                    "id": str(self.discord.user.id),
-                    "name": self.discord.user.name,
-                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar_url._url,
-                    "discriminator": self.discord.user.discriminator
-                },
-                "guilds": guilds
-            })
-        except:
-            try:
-                self.socket.emit("sync", {
-                    "bot": {
-                        "connected": True,
-                        "id": str(self.discord.user.id),
-                        "name": self.discord.user.name,
-                        "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url._url,
-                        "discriminator": self.discord.user.discriminator
-                    },
-                    "guilds": guilds
-                })
-            except:
-                self.socket.emit("sync", {
-                "bot": {
-                    "connected": True,
-                    "id": str(self.discord.user.id),
-                    "name": self.discord.user.name,
-                    "avatar": "https://cdn.discordapp.com" + self.discord.user.avatar.url,
-                    "discriminator": self.discord.user.discriminator
-                },
-                "guilds": guilds
-            })
+        try: # discord.py v1
+            avatar = self.discord.user.avatar_url
+        except AttributeError: # discord.py forks
+            avatar = self.discord.user.avatar.url
         
+        self.socket.emit("sync", {
+            "bot": {
+                "connected": True,
+                "id": str(self.discord.user.id),
+                "name": self.discord.user.name,
+                "avatar": avatar,
+                "discriminator": self.discord.user.discriminator
+            },
+            "guilds": guilds
+        })
+
     def util_setInterval(self, func, interval): 
         def func_wrapper(): 
             self.threads = [t for t in self.threads if t.is_alive()]
